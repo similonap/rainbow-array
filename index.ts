@@ -28,27 +28,52 @@ const hslToHex = (h: number, s: number, l: number) => {
     return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
 };
 
-const hex = (arrayLength: number, pastel: boolean = false) => {
-    const hexColors = [];
+const hexToRgb = (hexString: string) => {
+    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hexString);
+    return {
+                r: parseInt(result![1], 16),
+                g: parseInt(result![2], 16),
+                b: parseInt(result![3], 16),
+            };
+}
+
+export type Color = HexColor | RgbColor | HslColor;
+
+export type HexColor = { hex: string };
+export type RgbColor = { r: number, g: number, b: number };
+export type HslColor = { h: number, s: number, l: number };
+
+function rainbow(arrayLength: number, type: "hex", pastel: boolean): HexColor[];
+function rainbow(arrayLength: number, type: "hsl", pastel: boolean): HslColor[];
+function rainbow(arrayLength: number, type: "rgb", pastel: boolean): HslColor[];
+function rainbow(arrayLength: number, type: "hex" | "hsl" | "rgb", pastel: boolean = true) : Color[] {
+    const colors = [];
+    // generate rainbow color palette
     for (let i = 0; i < arrayLength; i++) {
-        const hue = i * (360 / arrayLength);
-        const saturation = 100;
-        const lightness = 50;
-        const hex = hslToHex(hue, saturation, lightness);
-        hexColors.push(hex);
+        const hue = i / arrayLength * 360;
+        const saturation = pastel ? 50 : 100;
+        const lightness = pastel ? 90 : 50;
+        colors.push({
+            h: hue,
+            s: saturation,
+            l: lightness,
+        })
+
     }
-    if (pastel) {
-        for (let i = 0; i < arrayLength; i++) {
-            const hue = i * (360 / arrayLength);
-            const saturation = 100;
-            const lightness = 80;
-            const hex = hslToHex(hue, saturation, lightness);
-            hexColors[i] = hex;
-        }
+
+
+    if (type === "hex") {
+        return colors.map((color) => ({hex: hslToHex(color.h, color.s, color.l)}));
+    } else if (type === "rgb") {
+        return colors.map((color) => hexToRgb(hslToHex(color.h, color.s, color.l)));
+    } else {
+        return colors;
     }
-    return hexColors;
+    
+
+    
 }
 
 export {
-    hex
+    rainbow
 }
